@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>密室ブリード風ゲーム</title>
+<style>
+body {
+  font-family: sans-serif;
+  background: #111;
+  color: #eee;
+  text-align: center;
+}
+button {
+  margin: 5px;
+  padding: 10px;
+  font-size: 16px;
+}
+.box {
+  border: 1px solid #555;
+  margin: 10px;
+  padding: 10px;
+}
+.log {
+  height: 120px;
+  overflow-y: auto;
+  font-size: 12px;
+  background: #000;
+}
+</style>
+</head>
+<body>
+
+<h1>密室ブリード</h1>
+
+<div class="box">
+  個体数: <span id="pop">10</span><br>
+  食料: <span id="food">50</span><br>
+  ストレス: <span id="stress">0</span>
+</div>
+
+<div>
+  <button onclick="feed()">餌を与える</button>
+  <button onclick="thin()">間引く</button>
+  <button onclick="observe()">観察</button>
+</div>
+
+<div class="box log" id="log"></div>
+
+<script>
+let state = {
+  pop: 10,
+  food: 50,
+  stress: 0,
+  turn: 0
+};
+
+function updateUI() {
+  document.getElementById("pop").textContent = state.pop;
+  document.getElementById("food").textContent = state.food;
+  document.getElementById("stress").textContent = Math.floor(state.stress);
+}
+
+function log(msg) {
+  const el = document.getElementById("log");
+  el.innerHTML = msg + "<br>" + el.innerHTML;
+}
+
+function nextTurn() {
+  state.turn++;
+
+  // 食料消費
+  state.food -= state.pop * 0.5;
+
+  // 餌不足で死亡
+  if (state.food < 0) {
+    let loss = Math.floor(Math.abs(state.food));
+    state.pop -= loss;
+    state.food = 0;
+    log("餌不足で " + loss + " 体死亡");
+  }
+
+  // 繁殖
+  if (state.food > 10 && state.stress < 50) {
+    let born = Math.floor(state.pop * 0.2);
+    state.pop += born;
+    log(born + " 体増殖した");
+  }
+
+  // ストレス増加
+  state.stress += state.pop * 0.3;
+
+  // ランダムイベント
+  if (Math.random() < 0.1) {
+    state.pop *= 2;
+    log("異常増殖発生！");
+  }
+
+  // 崩壊
+  if (state.stress > 100) {
+    alert("崩壊エンド");
+    location.reload();
+  }
+
+  if (state.pop <= 0) {
+    alert("全滅エンド");
+    location.reload();
+  }
+
+  updateUI();
+}
+
+function feed() {
+  state.food += 20;
+  log("餌を与えた");
+  nextTurn();
+}
+
+function thin() {
+  let removed = Math.floor(state.pop * 0.3);
+  state.pop -= removed;
+  state.stress -= 10;
+  log(removed + " 体間引いた");
+  nextTurn();
+}
+
+function observe() {
+  log("じっと観察している...");
+  nextTurn();
+}
+
+// 初期表示
+updateUI();
+</script>
+
+</body>
+</html>
